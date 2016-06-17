@@ -15,7 +15,7 @@ import java.util.Random;
 @Slf4j
 public class Main {
     public static void main(String[] args) throws Exception {
-        JChannel channel = new JChannel("udp.xml").name("node-" + new Random().nextInt());
+        JChannel channel = new JChannel("udp.xml").name("node-" + Math.abs(new Random().nextInt()));
         channel.setReceiver(new ClusterViewReceiver(channel));
         channel.connect("dzone-demo");
     }
@@ -38,31 +38,20 @@ public class Main {
                     .view(newView)
                     .index(getIndexFromView(newView, address))
                     .build();
-            if(nodeInfo !=null){
+            if (nodeInfo != null) {
                 //说明这不是刚刚启动的时候, 而是有节点的增加或减少
+                List<Address> leftMembers = View.leftMembers(nodeInfo.getView(), newView);
+                log.info("members left: {}", leftMembers);
+
+                if (nodeInfo.getIndex() != newNodeInfo.getIndex()) {
+                    log.info("my index changed from {} to {}", nodeInfo.getIndex(), newNodeInfo.getIndex());
+                }
             }
-//            this.localAddress = channel.getAddress();
-//            List<Address> leftMembers = View.leftMembers(view, newView);
-//            this.view = newView;
-//            clusterSize = newView.size();
-//            List<Address> mbrs = newView.getMembers();
-//            int oldRank = rank;
-//            log.info("addresses {}", mbrs);
-//            for (int i = 0; i < mbrs.size(); i++) {
-//                Address tmp = mbrs.get(i);
-//                if (tmp.equals(localAddress)) {
-//                    rank = i;
-//                    break;
-//                } else {
-//                    log.info("local address is {} and current address is {}", localAddress, tmp);
-//                }
-//            }
-//            if (oldRank == -1 || oldRank != rank) {
-//                log.info("my old rank is {} and new rank is {} ", oldRank, rank);
-//            }
+            this.nodeInfo = newNodeInfo;
+            log.info("node is {}", nodeInfo);
         }
 
-        private int getIndexFromView(View view, Address localAddress) {
+        private static int getIndexFromView(View view, Address localAddress) {
             List<Address> mbrs = view.getMembers();
             for (int i = 0; i < mbrs.size(); i++) {
                 Address tmp = mbrs.get(i);
