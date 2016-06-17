@@ -6,22 +6,25 @@ import org.jgroups.util.Util;
 
 import java.io.DataInput;
 import java.io.DataOutput;
+import java.util.concurrent.atomic.AtomicInteger;
 
-/** ID which is unique across a cluster
+/**
+ * ID which is unique across a cluster
+ *
  * @author Bela Ban
  */
 public class ClusterID implements Streamable {
     private Address creator;
-    private  int id;
+    private int id;
 
-    private static int next_id=1;
+    private static AtomicInteger next_id = new AtomicInteger(1);
 
     public ClusterID() {
     }
 
-    public ClusterID(Address creator, int id) {
-        this.creator=creator;
-        this.id=id;
+    private ClusterID(Address creator, int id) {
+        this.creator = creator;
+        this.id = id;
     }
 
     public Address getCreator() {
@@ -33,7 +36,7 @@ public class ClusterID implements Streamable {
     }
 
     public static synchronized ClusterID create(Address addr) {
-        return new ClusterID(addr, next_id++);
+        return new ClusterID(addr, next_id.getAndIncrement());
     }
 
     public int hashCode() {
@@ -41,7 +44,7 @@ public class ClusterID implements Streamable {
     }
 
     public boolean equals(Object obj) {
-        ClusterID other=(ClusterID)obj;
+        ClusterID other = (ClusterID) obj;
         return creator.equals(other.creator) && id == other.id;
     }
 
@@ -49,14 +52,14 @@ public class ClusterID implements Streamable {
         return creator + "::" + id;
     }
 
-    
+
     public void writeTo(DataOutput out) throws Exception {
         Util.writeAddress(creator, out);
         out.writeInt(id);
     }
 
     public void readFrom(DataInput in) throws Exception {
-        creator=Util.readAddress(in);
-        id=in.readInt();
+        creator = Util.readAddress(in);
+        id = in.readInt();
     }
 }
