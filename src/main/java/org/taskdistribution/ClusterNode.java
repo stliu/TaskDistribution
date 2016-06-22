@@ -110,14 +110,14 @@ public class ClusterNode extends ReceiverAdapter implements Closeable {
             log.info("received message from {} to {}", senderAddress, msg.dest());
             Request req = (Request) Util.streamableFromByteBuffer(Request.class, msg.getRawBuffer(), msg.getOffset(), msg.getLength());
             log.info("received {}", req);
-            ClusterID senderClusterId = req.getId();
-            handler(senderAddress, req, senderClusterId);
+            handler(senderAddress, req);
         } catch (Exception e) {
             log.error("exception receiving message from " + senderAddress, e);
         }
     }
 
-    private void handler(Address senderAddress, Request req, ClusterID senderClusterId) {
+    private void handler(Address senderAddress, Request req) {
+        ClusterID senderClusterId = req.getId();
         switch (req.getRequestType()) {
             case EXECUTE:
                 /**
